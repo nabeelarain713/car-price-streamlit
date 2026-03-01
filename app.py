@@ -4,7 +4,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
-import altair as alt
+import matplotlib.pyplot as plt
 
 # -------------------------
 # Load saved model and preprocessor
@@ -44,23 +44,29 @@ if uploaded_file is not None:
         st.dataframe(results_df.head(20))  # Show first 20 rows
 
         # -------------------------
-        # Bar chart visualization
+        # Matplotlib Bar chart visualization
         # -------------------------
         st.subheader("Actual vs Predicted Price Bar Chart")
-        # Melt dataframe for charting
-        chart_df = results_df[['Actual Price', 'Predicted Price']].reset_index().melt(
-            id_vars='index', value_vars=['Actual Price', 'Predicted Price'],
-            var_name='Price Type', value_name='Price'
-        )
-
-        chart = alt.Chart(chart_df).mark_bar().encode(
-            x=alt.X('index:N', title='Car Index'),
-            y=alt.Y('Price:Q'),
-            color='Price Type:N',
-            tooltip=['index', 'Price Type', 'Price']
-        ).properties(width=800, height=400)
-
-        st.altair_chart(chart, use_container_width=True)
+        
+        # Limit the number of bars to 20 for readability
+        plot_df = results_df.head(20)
+        indices = np.arange(len(plot_df))
+        width = 0.35
+        
+        fig, ax = plt.subplots(figsize=(12,6))
+        ax.bar(indices - width/2, plot_df['Actual Price'], width=width, label='Actual Price', color='skyblue')
+        ax.bar(indices + width/2, plot_df['Predicted Price'], width=width, label='Predicted Price', color='salmon')
+        
+        ax.set_xlabel('Car Index')
+        ax.set_ylabel('Price')
+        ax.set_title('Actual vs Predicted Prices')
+        ax.legend()
+        ax.set_xticks(indices)
+        ax.set_xticklabels(indices)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        st.pyplot(fig)
 
         # -------------------------
         # Metrics
